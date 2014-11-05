@@ -316,7 +316,7 @@ function SQKmodelG(anchor) {
     concentrations.X = parseFloat((newParamsClass.getElementsByClassName("X")[0]).value);
     concentrations.Y = parseFloat((newParamsClass.getElementsByClassName("Y")[0]).value);
     concentrations.Z = parseFloat((newParamsClass.getElementsByClassName("Z")[0]).value);
-    concentrations.Î© = parseFloat((newParamsClass.getElementsByClassName("Î©")[0]).value);
+    concentrations.Omega = parseFloat((newParamsClass.getElementsByClassName("Omega")[0]).value);
 
     this.diffusion.DG = parseFloat((newParamsClass.getElementsByClassName("DG")[0]).value);
     this.diffusion.DX = parseFloat((newParamsClass.getElementsByClassName("DX")[0]).value);
@@ -350,7 +350,7 @@ function SQKmodelG(anchor) {
     (updateClass.getElementsByClassName("X")[0]).setAttribute("value", concentrations.X);
     (updateClass.getElementsByClassName("Y")[0]).setAttribute("value", concentrations.Y);
     (updateClass.getElementsByClassName("Z")[0]).setAttribute("value", concentrations.Z);
-    (updateClass.getElementsByClassName("Î©")[0]).setAttribute("value", concentrations.Î©);
+    (updateClass.getElementsByClassName("Omega")[0]).setAttribute("value", concentrations.Omega);
     
     (updateClass.getElementsByClassName("DG")[0]).setAttribute("value", this.diffusion.DG);
     (updateClass.getElementsByClassName("DX")[0]).setAttribute("value", this.diffusion.DX);
