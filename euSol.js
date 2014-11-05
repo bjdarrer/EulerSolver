@@ -5,7 +5,7 @@
   *                             Stockholm March, April 2014
  * @constructor
  */
-function SQKmodelG(anchor) {
+function EuSol(anchor) {
   if (anchor) {
   }
   else
@@ -61,7 +61,7 @@ function SQKmodelG(anchor) {
     "X": 1,
     "Y": 1,
     "Z": 1,
-    "Î©": 1
+    "Omega": 1
   };
   /**
    * Initial static concentrations.
@@ -384,6 +384,6 @@ function SQKmodelG(anchor) {
     status[0].innerHTML = text;
   };
 };
-window['euSol'] = eu<sol;
+window['EuSol'] = EuSol;
 
 
