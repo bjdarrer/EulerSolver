@@ -4,27 +4,22 @@
   *                             Stockholm March, April, November 2014
  * @constructor
  */
-function EuSol(anchor) {
-  if (anchor) {
-  }
-  else
-    anchor = window;
+function EuSol() {
   var sqkMgthis = this;
 
   /**
-   * Size setup parameters.
+   * Size of simulation and canvas
    */
-/** @const */  this.size = {
+  this.size = {
     'rows' : 500,
     'columns' : 500
   }; 
   
   /**
    * Reaction parameters.
-   * @const
    * @ctype {object}
    */
-/** @const */  this.k = {
+  var k = {
     "1":  1,
     "_1": 1,
     "2":  1,
@@ -39,10 +34,9 @@ function EuSol(anchor) {
   
   /**
    * Diffusion parameters.
-   * @const
    * @ctype {object}
    */
-/** @const */  this.diffusion = {
+  var diffusion = {
     "DG" : 1,
     "DX" : 1,
     "DY" : 1
@@ -50,10 +44,9 @@ function EuSol(anchor) {
   
   /**
    * Initial static concentrations.
-   * @const
    * @ctype {object}
    */
-/** @const */  var concentrations = /*new Float64Array(8);*/ {
+  var concentrations = /*new Float64Array(8);*/ {
     "A": 1,
     "B": 1,
     "G": 1,
@@ -64,17 +57,13 @@ function EuSol(anchor) {
   };
   /**
    * Initial static concentrations.
-   * @const
    * @ctype {object}
    */
-/** @const */  this.dt = 0.5;
+  this.dt = 0.5;
 
-//Constants during a run (usually) 
-//  const x = 0;
-
-  // Configurations, user changeable  
-  // Canvas id
-  this.plotDOMid = "c";
+  // Usually not changed during a run
+  // Configurations, user changeable
+  this.plotDOMid = "c"; // Canvas id
   this.statusDOMclass = "simulationStatus";
   this.runSimulation = true;
   this.mask = "none";
@@ -89,11 +78,11 @@ function EuSol(anchor) {
     this.GXYarr = new Array(2);
     if (window.Float64Array) {
       this.GXYarr = [new Float64Array(3 * this.size.rows * this.size.columns),
-      new Float64Array(3 * this.size.rows * this.size.columns)];
+          new Float64Array(3 * this.size.rows * this.size.columns)];
     } else {
       this.GXYarr = [new Array(3 * this.size.rows * this.size.columns),
-      new Array(3 * this.size.rows * this.size.columns)];
-    }
+          new Array(3 * this.size.rows * this.size.columns)];
+    };
     for (var index = 0; index < this.GXYarr[0].length; index += 3) {
       this.GXYarr[0][index] = concentrations.G;
       this.GXYarr[1][index] = concentrations.G;
@@ -146,44 +135,37 @@ function EuSol(anchor) {
     }
   }  
 
-//Concentrations, not complete
+//Concentrations
   this.gxyConcentrations = function(arr3, readIndex, readBuffer, writeBuffer) {
     var G = readBuffer[3 * this.size.columns * i + j];
     var X = readBuffer[3 * this.size.columns * i + j + 1];
     var Y = readBuffer[3 * this.size.columns * i + j + 2];
-    G += (this.diffusion['DG'] * this.laplace(arr3[readIndex], 3 * this.size.columns * i + j) - (sqkMgthis.k["_1"] + sqkMgthis.k["2"]) * G + sqkMgthis.k["_2"] * X + sqkMgthis.k["1"] * concentrations['A']) * sqkMgthis.dt;
-
-    X += (this.diffusion['DX'] * this.laplace(arr3[readIndex], 3 * this.size.columns * i + j + 1) + sqkMgthis.k["2"] * G - (sqkMgthis.k["_2"] + sqkMgthis.k["3"] * concentrations['B'] + sqkMgthis.k["5"]) * X +
-      sqkMgthis.k["_3"] * concentrations['Z'] * Y - sqkMgthis.k["_4"] * X * X * X + sqkMgthis.k["4"] * X * X * Y + sqkMgthis.k["_5"] * concentrations['Î©']) * sqkMgthis.dt;
-
-    Y += (this.diffusion['DY'] * this.laplace(arr3[readIndex], 3 * this.size.columns * i + j + 2) + sqkMgthis.k["3"] * concentrations['B'] * X - sqkMgthis.k["_3"]*concentrations['Z']*Y + 
-      sqkMgthis.k["_4"] * X * X * X - sqkMgthis.k["4"]*X*X * Y ) * sqkMgthis.dt;
+    G += (diffusion['DG'] * this.laplace(arr3[readIndex], 3 * this.size.columns * i + j) - (k["_1"] + k["2"]) * G + k["_2"] * X + k["1"] * concentrations['A']) * sqkMgthis.dt;
+    X += (diffusion['DX']*this.laplace(arr3[readIndex], 3*this.size.columns*i + j + 1) + k["2"]*G - (k["_2"] + k["3"]*concentrations['B'] + k["5"])*X +
+        k["_3"]*concentrations['Z']*Y - k["_4"]*X*X*X + k["4"] * X * X * Y + k["_5"] * concentrations['Omega'])*sqkMgthis.dt;
+    Y += (diffusion['DY']*this.laplace(arr3[readIndex], 3*this.size.columns*i + j + 2) + k["3"]*concentrations['B']*X - k["_3"]*concentrations['Z']*Y +
+        k["_4"]*X*X*X - k["4"]*X*X*Y )*sqkMgthis.dt;
     return [G, X, Y];
   }  
 
   //Nondimensionalized potentials
-//  âˆ‚G
-//  âˆ‚t = âˆ‡2G âˆ’ qG + gX + a (7a)
-//  âˆ‚X
-//  âˆ‚t = dxâˆ‡  2X + pG âˆ’ (1 + b)X + uY âˆ’ sX3 + X
-//  2Y + w (7b)
-//  âˆ‚Y
-//  âˆ‚t = dyâˆ‡
-//  2Y + bX âˆ’ uY + sX3 âˆ’ X
-//  2Y (7c)
+//  ∂G
+//  ∂t = âˆ‡2G âˆ’ qG + gX + a (7a)
+//  ∂X
+//  ∂t = dxâˆ‡  2X + pG âˆ’ (1 + b)X + uY âˆ’ sX^3 + X^2Y + w (7b)
+//  ∂Y
+//  ∂t = dyâˆ‡ 2Y + bX âˆ’ uY + sX3 âˆ’ X^2Y (7c)
   
   this.gxyPotentials = function(arr3, readIndex) {
     var G = arr3[readIndex][3 * this.size.columns * i + j];
     var X = arr3[readIndex][3 * this.size.columns * i + j + 1];
     var Y = arr3[readIndex][3 * this.size.columns * i + j + 2];
-    G += (this.laplace(arr3[readIndex], 3 * this.size.columns * i + j) - (sqkMgthis.k["_1"] + sqkMgthis.k["2"]) / (sqkMgthis.k["_2"] + sqkMgthis.k["5"]) * G + 1/(1-sqkMgthis.k["5"]/sqkMgthis.k["_2"]) * X + sqkMgthis.k["1"] * Math.sqrt(sqkMgthis.k["4"])*Math.pow(sqkMgthis.k["_2"] +sqkMgthis.k["5"], 1.5) * concentrations['A'] ) * dt;
-
-    X += (this.diffusion['DX'] / this.diffusion['DG'] * this.laplace(arr3[readIndex], 3 * this.size.columns * i + j + 1) + sqkMgthis.k["2"]/(sqkMgthis.k["_2"] - sqkMgthis.k["5"]) * G - 
-      + (1 + sqkMgthis.k["_2"] / (sqkMgthis.k["_2"] + sqkMgthis.k["5"]) ) * concentrations['B'] * X + //Done until here
-      sqkMgthis.k["_3"] * concentrations['Z'] * Y - sqkMgthis.k["_4"] * X * X * X + sqkMgthis.k["4"] * X * X * Y + sqkMgthis.k["_5"] * concentrations['Î©']) * dt;
-
-    Y += (this.diffusion['DY'] * this.laplace(arr3[readIndex], 3 * this.size.columns * i + j + 2) + sqkMgthis.k["3"] * concentrations['B'] * X - sqkMgthis.k["_3"]*concentrations['Z']*Y + 
-      sqkMgthis.k["_4"] * X * X * X - sqkMgthis.k["4"]*X*X * Y ) * dt;
+    G += (this.laplace(arr3[readIndex], 3 * this.size.columns * i + j) - (k["_1"] + k["2"]) / (k["_2"] + k["5"]) * G + 1/(1-k["5"]/k["_2"]) * X + k["1"] * Math.sqrt(k["4"])*Math.pow(k["_2"] +k["5"], 1.5) * concentrations['A'] ) * dt;
+    X += (diffusion['DX'] / diffusion['DG'] * this.laplace(arr3[readIndex], 3 * this.size.columns * i + j + 1) + k["2"]/(k["_2"] - k["5"]) * G -
+        + (1 + k["_2"] / (k["_2"] + k["5"]) ) * concentrations['B'] * X + //Done until here
+        k["_3"] * concentrations['Z'] * Y - k["_4"] * X * X * X + k["4"] * X * X * Y + k["_5"] * concentrations['Î©']) * dt;
+    Y += (diffusion['DY'] * this.laplace(arr3[readIndex], 3 * this.size.columns * i + j + 2) + k["3"] * concentrations['B'] * X - k["_3"]*concentrations['Z']*Y +
+        k["_4"] * X * X * X - k["4"]*X*X * Y ) * dt;
     return [G, X, Y];
   }  
 
@@ -191,7 +173,7 @@ function EuSol(anchor) {
   this.gxy=this.gxyConcentrations;
 
 //  Reaction diffusion functions   
-//  Iterate, leave the boundary with i,j=1 ...
+//  Iterate, leave the boundary with i,j=1 ... !! REWORK !!
   this.gxyStep = function(arr3) {
     var functionStart = window.performance.now();
     var readIndex, writeIndex;
@@ -225,13 +207,13 @@ function EuSol(anchor) {
 //          var X = arr3[readIndex][3 * this.size.columns * i + j + 1];
 //          var Y = arr3[readIndex][3 * this.size.columns * i + j + 2];
 
-//          G += (this.diffusion['DG'] * this.laplace(arr3[readIndex], 3 * this.size.columns * i + j) - (sqkMgthis.k["_1"] + sqkMgthis.k["2"]) * G + sqkMgthis.k["_2"] * X + sqkMgthis.k["1"] * concentrations['A']) * dt;
+//          G += (diffusion['DG'] * this.laplace(arr3[readIndex], 3 * this.size.columns * i + j) - (k["_1"] + k["2"]) * G + k["_2"] * X + k["1"] * concentrations['A']) * dt;
 //
-//          X += (this.diffusion['DX'] * this.laplace(arr3[readIndex], 3 * this.size.columns * i + j + 1) + sqkMgthis.k["2"] * G - (sqkMgthis.k["_2"] + sqkMgthis.k["3"] * concentrations['B'] + sqkMgthis.k["5"]) * X +
-//            sqkMgthis.k["_3"] * concentrations['Z'] * Y - sqkMgthis.k["_4"] * X * X * X + sqkMgthis.k["4"] * X * X * Y + sqkMgthis.k["_5"] * concentrations['Î©']) * dt;
+//          X += (diffusion['DX'] * this.laplace(arr3[readIndex], 3 * this.size.columns * i + j + 1) + k["2"] * G - (k["_2"] + k["3"] * concentrations['B'] + k["5"]) * X +
+//            k["_3"] * concentrations['Z'] * Y - k["_4"] * X * X * X + k["4"] * X * X * Y + k["_5"] * concentrations['Î©']) * dt;
 //
-//          Y += (this.diffusion['DY'] * this.laplace(arr3[readIndex], 3 * this.size.columns * i + j + 2) + sqkMgthis.k["3"] * concentrations['B'] * X - sqkMgthis.k["_3"]*concentrations['Z']*Y + 
-//            sqkMgthis.k["_4"] * X * X * X - sqkMgthis.k["4"]*X*X * Y ) * dt;
+//          Y += (diffusion['DY'] * this.laplace(arr3[readIndex], 3 * this.size.columns * i + j + 2) + k["3"] * concentrations['B'] * X - k["_3"]*concentrations['Z']*Y +
+//            k["_4"] * X * X * X - k["4"]*X*X * Y ) * dt;
           conc3 = sqkMgthis.gxy(arr3, readIndex, readBuffer);
 
 //          arr3[writeIndex][3 * this.size.columns * i + j] = G;
@@ -316,20 +298,20 @@ function EuSol(anchor) {
     concentrations.Z = parseFloat((newParamsClass.getElementsByClassName("Z")[0]).value);
     concentrations.Omega = parseFloat((newParamsClass.getElementsByClassName("Omega")[0]).value);
 
-    this.diffusion.DG = parseFloat((newParamsClass.getElementsByClassName("DG")[0]).value);
-    this.diffusion.DX = parseFloat((newParamsClass.getElementsByClassName("DX")[0]).value);
-    this.diffusion.DY = parseFloat((newParamsClass.getElementsByClassName("DY")[0]).value);
+    diffusion.DG = parseFloat((newParamsClass.getElementsByClassName("DG")[0]).value);
+    diffusion.DX = parseFloat((newParamsClass.getElementsByClassName("DX")[0]).value);
+    diffusion.DY = parseFloat((newParamsClass.getElementsByClassName("DY")[0]).value);
 
-    this.k["1"]  = parseFloat((newParamsClass.getElementsByClassName("k1")[0]).value);
-    this.k["_1"] = parseFloat((newParamsClass.getElementsByClassName("k_1")[0]).value);
-    this.k["2"]  = parseFloat((newParamsClass.getElementsByClassName("k2")[0]).value);
-    this.k["_2"] = parseFloat((newParamsClass.getElementsByClassName("k_2")[0]).value);
-    this.k["3"]  = parseFloat((newParamsClass.getElementsByClassName("k3")[0]).value);
-    this.k["_3"] = parseFloat((newParamsClass.getElementsByClassName("k_3")[0]).value);
-    this.k["4"]  = parseFloat((newParamsClass.getElementsByClassName("k4")[0]).value);
-    this.k["_4"] = parseFloat((newParamsClass.getElementsByClassName("k_4")[0]).value);
-    this.k["5"]  = parseFloat((newParamsClass.getElementsByClassName("k5")[0]).value);
-    this.k["_5"] = parseFloat((newParamsClass.getElementsByClassName("k_5")[0]).value);
+    k["1"]  = parseFloat((newParamsClass.getElementsByClassName("k1")[0]).value);
+    k["_1"] = parseFloat((newParamsClass.getElementsByClassName("k_1")[0]).value);
+    k["2"]  = parseFloat((newParamsClass.getElementsByClassName("k2")[0]).value);
+    k["_2"] = parseFloat((newParamsClass.getElementsByClassName("k_2")[0]).value);
+    k["3"]  = parseFloat((newParamsClass.getElementsByClassName("k3")[0]).value);
+    k["_3"] = parseFloat((newParamsClass.getElementsByClassName("k_3")[0]).value);
+    k["4"]  = parseFloat((newParamsClass.getElementsByClassName("k4")[0]).value);
+    k["_4"] = parseFloat((newParamsClass.getElementsByClassName("k_4")[0]).value);
+    k["5"]  = parseFloat((newParamsClass.getElementsByClassName("k5")[0]).value);
+    k["_5"] = parseFloat((newParamsClass.getElementsByClassName("k_5")[0]).value);
 
     this.dt = parseFloat((newParamsClass.getElementsByClassName("dt")[0]).value);
 
@@ -350,20 +332,20 @@ function EuSol(anchor) {
     (updateClass.getElementsByClassName("Z")[0]).setAttribute("value", concentrations.Z);
     (updateClass.getElementsByClassName("Omega")[0]).setAttribute("value", concentrations.Omega);
     
-    (updateClass.getElementsByClassName("DG")[0]).setAttribute("value", this.diffusion.DG);
-    (updateClass.getElementsByClassName("DX")[0]).setAttribute("value", this.diffusion.DX);
-    (updateClass.getElementsByClassName("DY")[0]).setAttribute("value", this.diffusion.DY);
+    (updateClass.getElementsByClassName("DG")[0]).setAttribute("value", diffusion.DG);
+    (updateClass.getElementsByClassName("DX")[0]).setAttribute("value", diffusion.DX);
+    (updateClass.getElementsByClassName("DY")[0]).setAttribute("value", diffusion.DY);
 
-    (updateClass.getElementsByClassName("k1")[0]).setAttribute("value", this.k["1"]);
-    (updateClass.getElementsByClassName("k_1")[0]).setAttribute("value", this.k["_1"]);
-    (updateClass.getElementsByClassName("k2")[0]).setAttribute("value", this.k["2"]);
-    (updateClass.getElementsByClassName("k_2")[0]).setAttribute("value", this.k["_2"]);
-    (updateClass.getElementsByClassName("k3")[0]).setAttribute("value", this.k["3"]);
-    (updateClass.getElementsByClassName("k_3")[0]).setAttribute("value", this.k["_3"]);
-    (updateClass.getElementsByClassName("k4")[0]).setAttribute("value", this.k["4"]);
-    (updateClass.getElementsByClassName("k_4")[0]).setAttribute("value", this.k["_4"]);
-    ((updateClass).getElementsByClassName("k5")[0]).setAttribute("value", this.k["5"]);
-    ((updateClass).getElementsByClassName("k_5")[0]).setAttribute("value", this.k["_5"]);
+    (updateClass.getElementsByClassName("k1")[0]).setAttribute("value", k["1"]);
+    (updateClass.getElementsByClassName("k_1")[0]).setAttribute("value", k["_1"]);
+    (updateClass.getElementsByClassName("k2")[0]).setAttribute("value", k["2"]);
+    (updateClass.getElementsByClassName("k_2")[0]).setAttribute("value", k["_2"]);
+    (updateClass.getElementsByClassName("k3")[0]).setAttribute("value", k["3"]);
+    (updateClass.getElementsByClassName("k_3")[0]).setAttribute("value", k["_3"]);
+    (updateClass.getElementsByClassName("k4")[0]).setAttribute("value", k["4"]);
+    (updateClass.getElementsByClassName("k_4")[0]).setAttribute("value", k["_4"]);
+    ((updateClass).getElementsByClassName("k5")[0]).setAttribute("value", k["5"]);
+    ((updateClass).getElementsByClassName("k_5")[0]).setAttribute("value", k["_5"]);
 
     ((document.getElementsByClassName(paramGroup)[0]).getElementsByClassName("dt")[0]).setAttribute("value", this.dt);
 
@@ -382,6 +364,5 @@ function EuSol(anchor) {
     status[0].innerHTML = text;
   };
 };
-window['EuSol'] = EuSol;
 
 
