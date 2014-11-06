@@ -1,8 +1,7 @@
 /**
  * Simulating and visualizing reaction-diffusion systems
- * based on Subquantum Kinetics Model G
  * Programmed by David Jonsson, Athens January 2014
-  *                             Stockholm March, April 2014
+  *                             Stockholm March, April, November 2014
  * @constructor
  */
 function EuSol(anchor) {
@@ -110,7 +109,7 @@ function EuSol(anchor) {
   this.initializeArrays();
   this.GXYbuffer = 0;
     
-  // Laplacian numerial operator âˆ‡^2, wheight 1 on adjacents and Â½ on diagonals 
+  // Laplacian numerial operator nabla^2, wheight 1 on adjacents and ½ on diagonals
   var laplace2dDiagonal = function(V, index) {
     return -6*V[index] +
             V[index + 3] + V[index - 3] + V[index + 3 * sqkMgthis.size["columns"]] + V[index - 3 * sqkMgthis.size["columns"]] + //closest neighbours
@@ -243,14 +242,13 @@ function EuSol(anchor) {
           writeBuffer[3 * this.size.columns * i + j + 1] = conc3[1];
           writeBuffer[3 * this.size.columns * i + j + 2] = conc3[2];
 
-          sqkMgthis.extremesGXY.gMin = Math.min(sqkMgthis.extremesGXY.gMin , conc3[0]);
-          sqkMgthis.extremesGXY.gMax = Math.max(sqkMgthis.extremesGXY.gMax , conc3[0]);
-          sqkMgthis.extremesGXY.xMin = Math.min(sqkMgthis.extremesGXY.xMin , conc3[1]);
-          sqkMgthis.extremesGXY.xMax = Math.max(sqkMgthis.extremesGXY.xMax , conc3[1]);
-          sqkMgthis.extremesGXY.yMin = Math.min(sqkMgthis.extremesGXY.yMin , conc3[2]);
-          sqkMgthis.extremesGXY.yMax = Math.max(sqkMgthis.extremesGXY.yMax , conc3[2]);
-          
-           /*
+//          sqkMgthis.extremesGXY.gMin = Math.min(sqkMgthis.extremesGXY.gMin , conc3[0]);
+//          sqkMgthis.extremesGXY.gMax = Math.max(sqkMgthis.extremesGXY.gMax , conc3[0]);
+//          sqkMgthis.extremesGXY.xMin = Math.min(sqkMgthis.extremesGXY.xMin , conc3[1]);
+//          sqkMgthis.extremesGXY.xMax = Math.max(sqkMgthis.extremesGXY.xMax , conc3[1]);
+//          sqkMgthis.extremesGXY.yMin = Math.min(sqkMgthis.extremesGXY.yMin , conc3[2]);
+//          sqkMgthis.extremesGXY.yMax = Math.max(sqkMgthis.extremesGXY.yMax , conc3[2]);
+
           if (sqkMgthis.extremesGXY.gMin > conc3[0]) {
             sqkMgthis.extremesGXY.gMin = conc3[0];
           } else if (sqkMgthis.extremesGXY.gMax < conc3[0]) {
@@ -265,7 +263,7 @@ function EuSol(anchor) {
             sqkMgthis.extremesGXY.yMin = conc3[2];
           } else if (sqkMgthis.extremesGXY.yMax < conc3[2]) {
             sqkMgthis.extremesGXY.yMax = conc3[2];
-          }*/
+          }
         }
       };
     };    

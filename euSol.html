@@ -133,7 +133,7 @@
             <option>triangle</option>
             <option>innerElliptic</option>
           </select>. Boundary shape size 
-          <input type="range" class="shapeSize" min="0" max="1" step="0.01" onchange="myG.maskParam = this.value;"> 
+          <input type="range" class="shapeSize" min="0" max="1" step="0.0001" onchange="myG.maskParam = parseFloat(this.value);">
         </div>
         <div>
           <button type="button" onclick="myG.loadNewParamsFromView();">Use values in simulation</button>
