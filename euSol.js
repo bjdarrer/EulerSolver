@@ -135,6 +135,19 @@ function EuSol() {
     }
   }  
 
+  this.equations = [
+  {name: "modelGconcentrations", tex: '\begin{align}
+                                       \\ \frac{\partial G}{\partial t} & = k_1A -k_2G + k_{-2}X + D_g \nabla^2 G
+                                       \\ \frac{\partial X}{\partial t} & = k_2G +k_4X^2Y - k_{3}BX - k_5X + D_x \nabla^2 X
+                                       \\ \frac{\partial Y}{\partial t} & = k_3BX -k_4X^2Y + D_y \nabla^2 Y
+                                       \end{align}'},
+  {name: "modelGnondimensionalized", tex: '\begin{align}
+                                       \\ \frac{\partial G}{\partial t} & = \nabla^2 G
+                                       \\ \frac{\partial X}{\partial t} & = k_2G +k_4X^2Y - k_{3}BX - k_5X + D_x \nabla^2 X
+                                       \\ \frac{\partial Y}{\partial t} & = k_3BX -k_4X^2Y + D_y \nabla^2 Y
+                                       \end{align}'}
+  ]
+
 //Concentrations
   this.gxyConcentrations = function(arr3, readIndex, readBuffer, writeBuffer) {
     var G = readBuffer[3 * this.size.columns * i + j];
