@@ -136,16 +136,16 @@ function EuSol() {
   }  
 
   this.equations = [
-  {name: "modelGconcentrations", tex: '\begin{align}
-                                       \\ \frac{\partial G}{\partial t} & = k_1A -k_2G + k_{-2}X + D_g \nabla^2 G
-                                       \\ \frac{\partial X}{\partial t} & = k_2G +k_4X^2Y - k_{3}BX - k_5X + D_x \nabla^2 X
-                                       \\ \frac{\partial Y}{\partial t} & = k_3BX -k_4X^2Y + D_y \nabla^2 Y
-                                       \end{align}'},
-  {name: "modelGnondimensionalized", tex: '\begin{align}
-                                       \\ \frac{\partial G}{\partial t} & = \nabla^2 G
-                                       \\ \frac{\partial X}{\partial t} & = k_2G +k_4X^2Y - k_{3}BX - k_5X + D_x \nabla^2 X
-                                       \\ \frac{\partial Y}{\partial t} & = k_3BX -k_4X^2Y + D_y \nabla^2 Y
-                                       \end{align}'}
+  {name: "model_G_concentrations", tex: '\begin{align}'+"\n" +
+                                       '\\ \frac{\partial G}{\partial t} & = k_1A -k_2G + k_{-2}X + D_g \nabla^2 G'+"\n" +
+                                       '\\ \frac{\partial X}{\partial t} & = k_2G +k_4X^2Y - k_{3}BX - k_5X + D_x \nabla^2 X'+"\n" +
+                                       '\\ \frac{\partial Y}{\partial t} & = k_3BX -k_4X^2Y + D_y \nabla^2 Y'+"\n" +
+                                       '\end{align}'},
+  {name: "model_G_nondimensionalized", tex: '\begin{align}'+"\n" +
+                                       '\\ \frac{\partial G}{\partial t} & = \nabla^2 G -qG + gX +a'+"\n" +
+                                       '\\ \frac{\partial X}{\partial t} & = d_x \nabla^2 X + pG - (1+b)X +uY -sX^3 +x^2Y + w'+"\n" +
+                                       '\\ \frac{\partial Y}{\partial t} & = d_y \nabla^2 Y +bX -uY +sX^3 -X^2Y'+"\n" +
+                                       '\end{align}'}
   ]
 
 //Concentrations
