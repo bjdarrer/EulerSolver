@@ -14,10 +14,10 @@
         </script>
 
         <script src="compat.js"></script>
-        <script src="euSol.js"></script>
+        <script src="EulerSolver.js"></script>
         <script>
           function simulationStart() {
-            window.myG = new EuSol;
+            window.myG = new EulerSolver;
             myG.runSimulation = false;
             myG.loopSimulation();
             myG.loopVisualization();
@@ -34,8 +34,29 @@
           ga('send', 'pageview');
 
         </script>
+        <style>
+
+            html, body {
+                height: 100%;
+            }
+
+            html {
+                display: table;
+                margin: auto;
+            }
+
+            body {
+                display: table-cell;
+                vertical-align: middle;
+            }
+
+            .reaconsts > div{
+                width: 30px;
+                display:inline-block;
+            }
+        </style>
     </head>
-    <body onload="simulationStart();">
+    <body onload="simulationStart();" style="">
         <div>
             <h3>Visualizing reaction diffusion systems</h3>
         </div>
@@ -108,25 +129,27 @@
           DX = <input class="DX" type="number" style="width: 50px;">
           DY = <input class="DY" type="number" style="width: 50px;"> <br />
           Reaction constants<br/>
-          k<sub>1</sub> = <input class="k1" type="number" style="width: 50px;">
-          k<sub>2</sub> = <input class="k2" type="number" style="width: 50px;">
-          k<sub>3</sub> = <input class="k3" type="number" style="width: 50px;">
-          k<sub>4</sub> = <input class="k4" type="number" style="width: 50px;">
-          k<sub>5</sub> = <input class="k5" type="number" style="width: 50px;"><br />
-          k<sub>-1</sub> = <input class="k_1" type="number" style="width: 50px;">
-          k<sub>-2</sub> = <input class="k_2" type="number" style="width: 50px;">
-          k<sub>-3</sub> = <input class="k_3" type="number" style="width: 50px;">
-          k<sub>-4</sub> = <input class="k_4" type="number" style="width: 50px;">
-          k<sub>-5</sub> = <input class="k_5" type="number" style="width: 50px;"><br />
-          Time resolution dt = <input class="dt" type="number" style="width: 50px;"><br />
+            <div class="reaconsts">
+              <div>k<sub>1</sub> = </div> <input class="k1" type="number" style="width: 50px;">
+              <div>k<sub>2</sub> = </div> <input class="k2" type="number" style="width: 50px;">
+              <div>k<sub>3</sub> = </div> <input class="k3" type="number" style="width: 50px;">
+              <div>k<sub>4</sub> = </div> <input class="k4" type="number" style="width: 50px;">
+              <div>k<sub>5</sub> = </div> <input class="k5" type="number" style="width: 50px;"><br />
+              <div>k<sub>-1</sub> = </div> <input class="k_1" type="number" style="width: 50px;">
+              <div>k<sub>-2</sub> = </div> <input class="k_2" type="number" style="width: 50px;">
+              <div>k<sub>-3</sub> = </div> <input class="k_3" type="number" style="width: 50px;">
+              <div>k<sub>-4</sub> = </div> <input class="k_4" type="number" style="width: 50px;">
+              <div>k<sub>-5</sub> = </div> <input class="k_5" type="number" style="width: 50px;"><br />
+            </div>
+            Time resolution dt = <input class="dt" type="number" style="width: 50px;"><br />
           Simulation dimensions <br />
           width = <input class="width" type="number" value="500" style="width: 50px;">
           height = <input class="height" type="number" value="500" style="width: 50px;"><br />
-          Boundary periodic topology: Horizontally: <input class="periodicH" type="checkbox">,
-          Vertically: <input class="periodicV" type="checkbox"><br />
+          Boundary periodic topology: Horizontal: <input class="periodicH" type="checkbox">,
+          Vertical: <input class="periodicV" type="checkbox"><br />
           Boundary shapes <select name="select" class="maskSelect" onchange="myG.mask = this.value;">
-            <option>none</option> 
-            <option selected>elliptic</option>
+            <option selected>none</option>
+            <option>elliptic</option>
             <option>vertical</option>
             <option>horizontal</option>
             <option>rhombic</option>
@@ -144,7 +167,7 @@
 
         <div>
           <hr>
-          Made by David Jonsson david@djk.se 2014
+          Made by David Jonsson david@djk.se 2014, 2015
         </div>
 
     </body>

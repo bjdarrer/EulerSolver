@@ -1,14 +1,15 @@
 /**
  * Simulating and visualizing reaction-diffusion systems
  * Programmed by David Jonsson, Athens January 2014
-  *                             Stockholm March, April, November 2014
+  *                             Stockholm March, April, November 2014, 2015
  * @constructor
  */
-function EuSol() {
+function EulerSolver() {
   var sqkMgthis = this;
 
   /**
    * Size of simulation and canvas
+   * @type {number}
    */
   this.size = {
     'rows' : 500,
@@ -17,7 +18,7 @@ function EuSol() {
   
   /**
    * Reaction parameters.
-   * @ctype {object}
+   * @type {number}
    */
   var k = {
     "1":  1,
@@ -34,7 +35,7 @@ function EuSol() {
   
   /**
    * Diffusion parameters.
-   * @ctype {object}
+   * @type {number}
    */
   var diffusion = {
     "DG" : 1,
@@ -44,9 +45,9 @@ function EuSol() {
   
   /**
    * Initial static concentrations.
-   * @ctype {object}
+   * @type {number}
    */
-  var concentrations = /*new Float64Array(8);*/ {
+  var concentrations = {
     "A": 1,
     "B": 1,
     "G": 1,
@@ -55,14 +56,16 @@ function EuSol() {
     "Z": 1,
     "Omega": 1
   };
+
   /**
    * Initial static concentrations.
-   * @ctype {object}
+   * @type {number}
    */
   this.dt = 0.5;
 
-  // Usually not changed during a run
-  // Configurations, user changeable
+  /**
+   * User changeable settings.
+   */
   this.plotDOMid = "c"; // Canvas id
   this.statusDOMclass = "simulationStatus";
   this.runSimulation = true;
@@ -71,8 +74,9 @@ function EuSol() {
   this.calcStepIterationDOM = document.getElementsByClassName('calcStepIteration')[0];
   this.calcStepDurationDOM = document.getElementsByClassName('calcStepDuration')[0];
 
-  // End of configurations, user changeable
-  
+  /**
+   * Initial static concentrations. Format GXYGXY...
+   */
   this.initializeArrays = function() {
     //Initial dynamic concentrations. Format GXYGXY ... 64 bit double array might be needed
     this.GXYarr = new Array(2);
@@ -98,12 +102,18 @@ function EuSol() {
   this.initializeArrays();
   this.GXYbuffer = 0;
     
-  // Laplacian numerial operator nabla^2, wheight 1 on adjacents and ½ on diagonals
+  /**
+   * Laplacian numerical operator nabla^2, wheight 1 on adjacents and ½ on diagonals.
+   */
   var laplace2dDiagonal = function(V, index) {
     return -6*V[index] +
             V[index + 3] + V[index - 3] + V[index + 3 * sqkMgthis.size["columns"]] + V[index - 3 * sqkMgthis.size["columns"]] + //closest neighbours
             0.5*(V[index + 3 * sqkMgthis.size.columns + 3] + V[index + 3 * sqkMgthis.size.columns - 3] + V[index - 3 * sqkMgthis.size.columns + 3] + V[index - 3 * sqkMgthis.size.columns - 3]); //diagonal neighbours
   };
+
+  /**
+   * Laplacian numerical operator nabla^2, wheight 1 on adjacents and 0 on diagonals.
+   */
   var laplace2dAdjacentOnly = function(V, index) {
     return -4*V[index] +
             V[index + 3] + V[index - 3] + V[index + 3 * sqkMgthis.size["columns"]] + V[index - 3 * sqkMgthis.size["columns"]];  //closest neighbours
@@ -111,7 +121,9 @@ function EuSol() {
 //  this.laplace = laplace2dAdjacentOnly;
   this.laplace = laplace2dDiagonal;
 
-//Masking, boundary conditions
+  /**
+   * Masking, boundary conditions.
+   */
   this.masking = function(i, j, mask) {
     var im = (i / this.size.columns - 1/2);
     var jm = (j / 3 / this.size.rows - 1/2);
@@ -135,20 +147,30 @@ function EuSol() {
     }
   }  
 
+  /**
+   * Name and TeX code for equations.
+   * @type {Array}
+   */
   this.equations = [
-  {name: "model_G_concentrations", tex: '\begin{align}'+"\n" +
+    {name: "model_G_concentrations", tex: '\begin{align}'+"\n" +
                                        '\\ \frac{\partial G}{\partial t} & = k_1A -k_2G + k_{-2}X + D_g \nabla^2 G'+"\n" +
                                        '\\ \frac{\partial X}{\partial t} & = k_2G +k_4X^2Y - k_{3}BX - k_5X + D_x \nabla^2 X'+"\n" +
                                        '\\ \frac{\partial Y}{\partial t} & = k_3BX -k_4X^2Y + D_y \nabla^2 Y'+"\n" +
                                        '\end{align}'},
-  {name: "model_G_nondimensionalized", tex: '\begin{align}'+"\n" +
+    {name: "model_G_nondimensionalized", tex: '\begin{align}'+"\n" +
                                        '\\ \frac{\partial G}{\partial t} & = \nabla^2 G -qG + gX +a'+"\n" +
                                        '\\ \frac{\partial X}{\partial t} & = d_x \nabla^2 X + pG - (1+b)X +uY -sX^3 +x^2Y + w'+"\n" +
                                        '\\ \frac{\partial Y}{\partial t} & = d_y \nabla^2 Y +bX -uY +sX^3 -X^2Y'+"\n" +
                                        '\end{align}'}
   ]
 
-//Concentrations
+  /**
+   * iteration step function for concentrations
+   * @param {Array} arr3 - Double buffer simulation data.
+   * @param {number} readIndex - Index of the double buffers.
+   * @param {string} readBuffer - The read buffer of the two buffers.
+   * @param {string} writeBuffer - The write buffer of the two buffers.
+   */
   this.gxyConcentrations = function(arr3, readIndex, readBuffer, writeBuffer) {
     var G = readBuffer[3 * this.size.columns * i + j];
     var X = readBuffer[3 * this.size.columns * i + j + 1];
@@ -161,14 +183,18 @@ function EuSol() {
     return [G, X, Y];
   }  
 
-  //Nondimensionalized potentials
-//  ∂G
-//  ∂t = âˆ‡2G âˆ’ qG + gX + a (7a)
-//  ∂X
-//  ∂t = dxâˆ‡  2X + pG âˆ’ (1 + b)X + uY âˆ’ sX^3 + X^2Y + w (7b)
-//  ∂Y
-//  ∂t = dyâˆ‡ 2Y + bX âˆ’ uY + sX3 âˆ’ X^2Y (7c)
-  
+  /**
+   *  iteration step function for nondimensionalized potentials
+   *  ∂G
+   *  ∂t = âˆ‡2G âˆ’ qG + gX + a (7a)
+   *  ∂X
+   *  ∂t = dxâˆ‡  2X + pG âˆ’ (1 + b)X + uY âˆ’ sX^3 + X^2Y + w (7b)
+   *  ∂Y
+   *  ∂t = dyâˆ‡ 2Y + bX âˆ’ uY + sX3 âˆ’ X^2Y (7c)
+   *
+   * @param {Array} arr3 - Double buffer simulation data.
+   * @param {number} readIndex - Index of the double buffers.
+   */
   this.gxyPotentials = function(arr3, readIndex) {
     var G = arr3[readIndex][3 * this.size.columns * i + j];
     var X = arr3[readIndex][3 * this.size.columns * i + j + 1];
@@ -182,11 +208,17 @@ function EuSol() {
     return [G, X, Y];
   }  
 
-  //The 3 valued return function in the iteration
+ /**
+  * Choosing the set of differential equations for returning 3 valued GXY in the iteration.
+  * @type {Object}
+  */
   this.gxy=this.gxyConcentrations;
 
-//  Reaction diffusion functions   
-//  Iterate, leave the boundary with i,j=1 ... !! REWORK !!
+  /**
+   *  Reaction diffusion functions. Iterating, special treating the boundary.
+   *
+   * @param {Array} arr3 - Double buffer simulation data.
+   */
   this.gxyStep = function(arr3) {
     var functionStart = window.performance.now();
     var readIndex, writeIndex;
@@ -216,33 +248,11 @@ function EuSol() {
     for (j = 3; j < 3 * this.size.rows - 3; j += 3 ) {
       for (i = 1; i < this.size.columns - 2; i++ ) {
         if (this.masking(i, j, this.mask)) {
-//          var G = arr3[readIndex][3 * this.size.columns * i + j];
-//          var X = arr3[readIndex][3 * this.size.columns * i + j + 1];
-//          var Y = arr3[readIndex][3 * this.size.columns * i + j + 2];
-
-//          G += (diffusion['DG'] * this.laplace(arr3[readIndex], 3 * this.size.columns * i + j) - (k["_1"] + k["2"]) * G + k["_2"] * X + k["1"] * concentrations['A']) * dt;
-//
-//          X += (diffusion['DX'] * this.laplace(arr3[readIndex], 3 * this.size.columns * i + j + 1) + k["2"] * G - (k["_2"] + k["3"] * concentrations['B'] + k["5"]) * X +
-//            k["_3"] * concentrations['Z'] * Y - k["_4"] * X * X * X + k["4"] * X * X * Y + k["_5"] * concentrations['Î©']) * dt;
-//
-//          Y += (diffusion['DY'] * this.laplace(arr3[readIndex], 3 * this.size.columns * i + j + 2) + k["3"] * concentrations['B'] * X - k["_3"]*concentrations['Z']*Y +
-//            k["_4"] * X * X * X - k["4"]*X*X * Y ) * dt;
           conc3 = sqkMgthis.gxy(arr3, readIndex, readBuffer);
 
-//          arr3[writeIndex][3 * this.size.columns * i + j] = G;
-//          arr3[writeIndex][3 * this.size.columns * i + j + 1] = X;
-//          arr3[writeIndex][3 * this.size.columns * i + j + 2] = Y;
-
-          writeBuffer[3 * this.size.columns * i + j] = conc3[0];
+          writeBuffer[3 * this.size.columns * i + j]     = conc3[0];
           writeBuffer[3 * this.size.columns * i + j + 1] = conc3[1];
           writeBuffer[3 * this.size.columns * i + j + 2] = conc3[2];
-
-//          sqkMgthis.extremesGXY.gMin = Math.min(sqkMgthis.extremesGXY.gMin , conc3[0]);
-//          sqkMgthis.extremesGXY.gMax = Math.max(sqkMgthis.extremesGXY.gMax , conc3[0]);
-//          sqkMgthis.extremesGXY.xMin = Math.min(sqkMgthis.extremesGXY.xMin , conc3[1]);
-//          sqkMgthis.extremesGXY.xMax = Math.max(sqkMgthis.extremesGXY.xMax , conc3[1]);
-//          sqkMgthis.extremesGXY.yMin = Math.min(sqkMgthis.extremesGXY.yMin , conc3[2]);
-//          sqkMgthis.extremesGXY.yMax = Math.max(sqkMgthis.extremesGXY.yMax , conc3[2]);
 
           if (sqkMgthis.extremesGXY.gMin > conc3[0]) {
             sqkMgthis.extremesGXY.gMin = conc3[0];
@@ -264,10 +274,13 @@ function EuSol() {
     };    
     this.iteration++;
     this.calcStepDuration = (performance.now() - functionStart).toFixed(3);
-//    console.log("iteration ", this.iteration, " done in ", performance.now() - functionStart, " milliseconds");
   };
   
-  //Plot the data in a 2D Canvas, (G, X, Y) mapped to (R, G, B)
+  /**
+   *  Plot the data in a 2D Canvas, (G, X, Y) mapped to (R, G, B).
+   *
+   * @param {Array} arr3 - Double buffer simulation data.
+   */
   this.plot2D = function(arr3) {
     var c = document.getElementById(sqkMgthis.plotDOMid);
     var ctx = c.getContext("2d");
@@ -285,6 +298,9 @@ function EuSol() {
     this.calcStepDurationDOM.innerHTML = this.calcStepDuration;
   };
   
+  /**
+   *  Loop the simulation with setTimeout(...,0).
+   */
   this.loopSimulation = function () {
     if (sqkMgthis.runSimulation) {
       sqkMgthis.gxyStep(sqkMgthis.GXYarr);
@@ -292,6 +308,9 @@ function EuSol() {
     }
   };
   
+  /**
+   *  Loop the visualization with requestAnimationFrame or new data.
+   */
   this.loopVisualization = function () {
     if (sqkMgthis.shownIteration < sqkMgthis.iteration) {
       sqkMgthis.plot2D(sqkMgthis.GXYarr, sqkMgthis.plotDOMid);
@@ -299,9 +318,11 @@ function EuSol() {
     }
     sqkMgthis.loopRequestAnimationFrameID = requestAnimationFrame(sqkMgthis.loopVisualization);
   };
-  
+
+  /**
+   *  Fill variables and objects from the view's "changeable values".
+   */
   this.loadNewParamsFromView = function() {
-  //Get values from view "changeable values"
     var newParamsClass = document.getElementsByClassName("newGparams")[0];
     concentrations.A = parseFloat((newParamsClass.getElementsByClassName("A")[0]).value);
     concentrations.B = parseFloat((newParamsClass.getElementsByClassName("B")[0]).value);
@@ -333,10 +354,14 @@ function EuSol() {
 
     this.updateParamsInView("loadedGparams");
   };
-    
+
+  /**
+   *  Fill variables and objects from the view's "changeable values".
+   *
+   * @param {String} paramGroup - class of parameters in view to update.
+   */
   this.updateParamsInView = function(paramGroup) {    
-  //Update the web view list of params        
-    var updateClass = document.getElementsByClassName(paramGroup)[0]; 
+    var updateClass = document.getElementsByClassName(paramGroup)[0];
     (updateClass.getElementsByClassName("A")[0]).setAttribute("value", concentrations.A);
     (updateClass.getElementsByClassName("B")[0]).setAttribute("value", concentrations.B);
     (updateClass.getElementsByClassName("G")[0]).setAttribute("value", concentrations.G);
@@ -370,12 +395,11 @@ function EuSol() {
   };
   this.updateParamsInView("loadedGparams");
   this.updateParamsInView("newGparams");
-  
+
   this.showStatus = function(text, bgColor) {
     var status = document.getElementsByClassName(sqkMgthis.statusDOMclass);
     status[0].style.backgroundColor = bgColor;
     status[0].innerHTML = text;
   };
 };
-
 
