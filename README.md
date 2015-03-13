@@ -5,5 +5,6 @@ Euler solver - Simple solver of a three dimensional partial differential equatio
 
 Some features are not working. 
 
+JavaScript and DOM-references are unfortunately not separated.
 
 
